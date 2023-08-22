@@ -17,20 +17,56 @@ so that OU could automate the upload to Moodle).
 """
 
 from os.path import exists
-from os import mkdir
+from os import mkdir, rmdir
 from typing import Dict, Union, Any
 import requests
+import re
 
 from get_block import get_lecture_block
 from get_course import get_course
 from get_lecture import get_lecture
 
 
+def regular_expression_markdown_image() -> str:
+    """Returns a regular expression to match markdown image and return the url
+
+    Returns
+    -------
+        str: A regular expression that matches markdown image references
+    """
+    return r'!\[.*\]\(.*\)'
+
+
+def extract_urls(line: str) -> list:
+    """Extract one or more urls from a markdown image reference
+
+    For example:
+
+    ```markdown
+    ![alt text](bla_bla.png)![another text](second_image.png)
+    ```
+    will return
+    ```python
+    ['bla_bla.png', 'second_image.png']
+    ```
+    Arguments
+    ---------
+        line (str): A line containing one or more markdown image references
+
+    Returns
+    -------
+    list: A list of urls
+    """
+    expression = regular_expression_markdown_image()
+    urls = re.findall(expression, line)
+    return [x.split('(')[1].split(')')[0] for x in urls]
+
+
 def extract_images(document: str, destination_folder: str):
     """Extract all images from a markdown document, document to assets subfolder and replace with local references
 
     Iterates through each line in a markdown document.
-    Extracts all ![img](url) references, downloads the image and saves it to the assets.
+    Extracts all ![img](url) references using regular expression, downloads the image and saves it to the assets.
     Then replaces the original reference with a local reference.
 
     Arguments
@@ -38,20 +74,22 @@ def extract_images(document: str, destination_folder: str):
         document (str): The markdown document to extract images from
     """
     for line in document.split('\n'):
-        if line.startswith('!['):
-            url = line.split('(')[1].split(')')[0]
-            filename = url.split('/')[-1]
-            print(f"Downloading {url} to {destination_folder}/{filename}")
-            try:
-                image = requests.get(url, allow_redirects=True)
-                if image.status_code == 200:
-                    document = document.replace(url, f"assets/{filename}")
-                    with open(f"{destination_folder}/{filename}", 'wb') as f:
-                        f.write(image.content)
-                else:
-                    print(f"Error downloading {url}")
-            except Exception as e:
-                print(f"Error downloading {url}: {e}")
+        expression = regular_expression_markdown_image()
+        if re.match(expression, line):
+            urls = extract_urls(line)
+            for url in urls:
+                filename = url.split('/')[-1]
+                print(f"Downloading {url} to {destination_folder}/{filename}")
+                try:
+                    image = requests.get(url, allow_redirects=True)
+                    if image.status_code == 200:
+                        document = document.replace(url, f"assets/{filename}")
+                        with open(f"{destination_folder}/{filename}", 'wb') as f:
+                            f.write(image.content)
+                    else:
+                        print(f"Error downloading {url}")
+                except Exception as e:
+                    print(f"Error downloading {url}: {e}")
     return document
 
 
