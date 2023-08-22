@@ -40,8 +40,11 @@ if __name__ == "__main__":
 
     print(f"Attributes: {attributes.keys()}")
 
+    print(f"Version number: {attributes['versionNumber']}")
+    print(f"Version: {attributes['versions']}")
+
     blocks = attributes['Blocks']['data']
-    print(blocks)
+    # print(blocks)
     for block in blocks:
         print(f"This lecture contains block {block['id']}: '{block['attributes']['Title']}'")
 
@@ -60,7 +63,7 @@ if __name__ == "__main__":
 
     lecture_id = lecture['data']['id']
     document = attributes['Abstract']
-    with open(f"lecture_{lecture_id}.md", 'wt') as markdown_file:
-        markdown_file.write(f"# {title}\n\n")
-        markdown_file.write(document)
+    # with open(f"lecture_{lecture_id}.md", 'wt') as markdown_file:
+    #     markdown_file.write(f"# {title}\n\n")
+    #     markdown_file.write(document)
 

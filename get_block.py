@@ -33,10 +33,15 @@ def print_keys(dict: Union[Dict, Any]):
 
 
 if __name__ == "__main__":
-    block = get_lecture_block(4)
+    block = get_lecture_block(5)
     attributes = block['data']['attributes']
 
     print(f"Attributes: {attributes.keys()}")
+
+    print(f"Version number: {attributes['versionNumber']}")
+    print(f"Version: {[x['id'] for x in attributes['versions']['data']]}")
+
+    print(f"Published at: {attributes['publishedAt']}")
 
     lectures = [x['attributes'] for x in attributes['Lectures']['data']]
     for lecture in lectures:

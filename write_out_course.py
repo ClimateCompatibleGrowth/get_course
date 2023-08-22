@@ -114,10 +114,13 @@ def main(course_id: int, destination_folder: str) -> bool:
 
         blocks = [get_lecture_block(x['id']) for x in lecture['data']['attributes']['Blocks']['data']]
         for block in blocks:
-            block_path = f"{lecture_path}/{block['data']['id']}"
-            with open(f"{block_path}.md", 'w') as f:
-                document = extract_images(block['data']['attributes']['Document'], assets_path)
-                f.write(document)
+            # Skip blocks which are not published
+            if block['data']['attributes']['publishedAt']:
+                block_path = f"{lecture_path}/{block['data']['id']}"
+                with open(f"{block_path}.md", 'w') as markdown_file:
+                    block_document = block['data']['attributes']['Document']
+                    document = extract_images(block_document, assets_path)
+                    markdown_file.write(document)
 
     return success
 
