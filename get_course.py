@@ -20,8 +20,9 @@ def get_course(id: str):
     ---------
         id (str): The id of the course to retrieve
     """
-    url = f"https://teachingkit.climatecompatiblegrowth.com/api/courses/{id}?locale=en&populate=*"
-    response = requests.get(url)
+    url = f"https://teachingkit.climatecompatiblegrowth.com/api/courses/{id}"
+    payload = {'locale': 'en', 'populate': '*'}
+    response = requests.get(url, params=payload)
 
     return response.json()
 

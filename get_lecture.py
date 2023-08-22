@@ -17,8 +17,9 @@ def get_lecture(id: str):
     ---------
         id (str): The id of the lecture block to retrieve
     """
-    url = f"https://teachingkit.climatecompatiblegrowth.com/api/lectures/{id}?locale=en&populate=*"
-    response = requests.get(url)
+    url = f"https://teachingkit.climatecompatiblegrowth.com/api/lectures/{id}"
+    payload = {'locale': 'en', 'populate': '*'}
+    response = requests.get(url, params=payload)
 
     return response.json()
 
