@@ -4,7 +4,6 @@ Writes a markdown file with the contents of the lecture to the current directory
 
 >>> python get_lecture.py
 
-
 """
 import requests
 from typing import Dict, Union, Any
