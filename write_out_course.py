@@ -22,6 +22,8 @@ from typing import Dict, Union, Any
 import requests
 import re
 
+from yaml import dump
+
 from get_block import get_lecture_block
 from get_course import get_course
 from get_lecture import get_lecture
@@ -120,11 +122,24 @@ def main(course_id: int, destination_folder: str) -> bool:
                 with open(f"{block_path}.md", 'w') as markdown_file:
                     block_document = block['data']['attributes']['Document']
                     document = extract_images(block_document, assets_path)
+
+                    # Extract metadata for the top of the block
+                    title = block['data']['attributes']['Title']
+                    author_list = [x['attributes'] for x in block['data']['attributes']['Authors']['data']]
+                    authors = []
+                    for author in author_list:
+                        authors.append(f"{author['FirstName']}, {author['LastName']}")
+                    # Write the metadata as a YAML block to the top of the markdown file
+                    yaml_dict = {'title': title, 'authors': authors}
+                    yaml_meta = dump(yaml_dict, default_flow_style=False)
+                    markdown_file.write('---\n')
+                    markdown_file.write(yaml_meta)
+                    markdown_file.write('---\n\n')
                     markdown_file.write(document)
 
     return success
 
 
 if __name__ == "__main__":
-    success = main(2, "course_2")
+    success = main(2, "infra")
     print(success)
