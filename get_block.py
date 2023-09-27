@@ -11,7 +11,6 @@ from json import loads, dumps
 
 def get_lecture_block(id: str):
     """Retrieves the contents of a lecture block from the teaching kit website
-
     Arguments
     ---------
         id (str): The id of the lecture block to retrieve
