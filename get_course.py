@@ -44,6 +44,7 @@ if __name__ == "__main__":
 
     title = attributes['Title']
     print(f"Course title: {title}")
+    
 
     outcomes = [x['LearningOutcome'] for x in attributes['LearningOutcomes']]
     print(f"Outcomes: {outcomes}")
@@ -52,18 +53,4 @@ if __name__ == "__main__":
     for lecture in lectures:
         print(f"This course contains lecture: '{lecture['id']}: {lecture['attributes']['Title']}'")
 
-
-    # authors = [x['attributes'] for x in attributes['LectureCreators']['data']]
-
-    # print("This lecture lecture was written by:")
-    # for author in authors:
-    #     print(f"{author['FirstName']} {author['LastName']} {author['Email']} {author['ORCID']}")
-
-
-
-    # lecture_id = lecture['data']['id']
-    # document = attributes['Abstract']
-    # with open(f"lecture_{lecture_id}.md", 'wt') as markdown_file:
-    #     markdown_file.write(f"# {title}\n\n")
-    #     markdown_file.write(document)
 

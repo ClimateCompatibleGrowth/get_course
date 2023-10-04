@@ -6,6 +6,7 @@ Writes a markdown file with the contents of the lecture to the current directory
 
 """
 import requests
+#import keywords
 from typing import Dict, Union, Any
 
 
@@ -45,7 +46,7 @@ if __name__ == "__main__":
     blocks = attributes['Blocks']['data']
     # print(blocks)
     for block in blocks:
-        print(f"This lecture contains block {block['id']}: '{block['attributes']['Title']}'")
+        print(f"This lecture contains block {block['id']}: '{block['attributes']['Title']}'") #'{block['attributes']['keywords']}")
 
     authors = [x['attributes'] for x in attributes['LectureCreators']['data']]
 
@@ -59,6 +60,8 @@ if __name__ == "__main__":
 
     title = attributes['Title']
     print(title)
+    keywords = attributes['keywords']
+    print(keywords)
 
     lecture_id = lecture['data']['id']
     document = attributes['Abstract']

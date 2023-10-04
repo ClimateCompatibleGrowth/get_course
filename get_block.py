@@ -5,6 +5,7 @@ Writes a markdown file with the contents of the lecture block to the current dir
 >>> python get_block.py
 
 """
+from matplotlib.widgets import Slider, SliderBase
 import requests
 from typing import Dict, Union, Any
 from json import loads, dumps
