@@ -5,19 +5,20 @@ Writes a markdown file with the contents of the lecture block to the current dir
 >>> python get_block.py
 
 """
+from matplotlib.widgets import Slider, SliderBase
 import requests
 from typing import Dict, Union, Any
 from json import loads, dumps
 
 def get_lecture_block(id: str):
     """Retrieves the contents of a lecture block from the teaching kit website
-
     Arguments
     ---------
         id (str): The id of the lecture block to retrieve
     """
-    url = f"https://teachingkit.climatecompatiblegrowth.com/api/blocks/{id}?locale=en&populate=*"
-    response = requests.get(url)
+    url = f"https://teachingkit.climatecompatiblegrowth.com/api/blocks/{id}"
+    payload = {'locale': 'en', 'populate': '*'}
+    response = requests.get(url, params=payload)
 
     return response.json()
 
@@ -32,10 +33,15 @@ def print_keys(dict: Union[Dict, Any]):
 
 
 if __name__ == "__main__":
-    block = get_lecture_block(4)
+    block = get_lecture_block(5)
     attributes = block['data']['attributes']
 
     print(f"Attributes: {attributes.keys()}")
+
+    print(f"Version number: {attributes['versionNumber']}")
+    print(f"Version: {[x['id'] for x in attributes['versions']['data']]}")
+
+    print(f"Published at: {attributes['publishedAt']}")
 
     lectures = [x['attributes'] for x in attributes['Lectures']['data']]
     for lecture in lectures:

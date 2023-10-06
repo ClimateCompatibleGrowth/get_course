@@ -17,20 +17,59 @@ so that OU could automate the upload to Moodle).
 """
 
 from os.path import exists
-from os import mkdir
+from os import mkdir, rmdir
 from typing import Dict, Union, Any
 import requests
+import re
+
+from yaml import dump
 
 from get_block import get_lecture_block
 from get_course import get_course
 from get_lecture import get_lecture
+from get_keywrd import keywords
+
+
+def regular_expression_markdown_image() -> str:
+    """Returns a regular expression to match markdown image and return the url
+
+    Returns
+    -------
+        str: A regular expression that matches markdown image references
+    """
+    return r'!\[.*\]\(.*\)'
+
+
+def extract_urls(line: str) -> list:
+    """Extract one or more urls from a markdown image reference
+
+    For example:
+
+    ```markdown
+    ![alt text](bla_bla.png)![another text](second_image.png)
+    ```
+    will return
+    ```python
+    ['bla_bla.png', 'second_image.png']
+    ```
+    Arguments
+    ---------
+        line (str): A line containing one or more markdown image references
+
+    Returns
+    -------
+    list: A list of urls
+    """
+    expression = regular_expression_markdown_image()
+    urls = re.findall(expression, line)
+    return [x.split('(')[1].split(')')[0] for x in urls]
 
 
 def extract_images(document: str, destination_folder: str):
     """Extract all images from a markdown document, document to assets subfolder and replace with local references
 
     Iterates through each line in a markdown document.
-    Extracts all ![img](url) references, downloads the image and saves it to the assets.
+    Extracts all ![img](url) references using regular expression, downloads the image and saves it to the assets.
     Then replaces the original reference with a local reference.
 
     Arguments
@@ -38,20 +77,22 @@ def extract_images(document: str, destination_folder: str):
         document (str): The markdown document to extract images from
     """
     for line in document.split('\n'):
-        if line.startswith('!['):
-            url = line.split('(')[1].split(')')[0]
-            filename = url.split('/')[-1]
-            print(f"Downloading {url} to {destination_folder}/{filename}")
-            try:
-                image = requests.get(url, allow_redirects=True)
-                if image.status_code == 200:
-                    document = document.replace(url, f"assets/{filename}")
-                    with open(f"{destination_folder}/{filename}", 'wb') as f:
-                        f.write(image.content)
-                else:
-                    print(f"Error downloading {url}")
-            except Exception as e:
-                print(f"Error downloading {url}: {e}")
+        expression = regular_expression_markdown_image()
+        if re.match(expression, line):
+            urls = extract_urls(line)
+            for url in urls:
+                filename = url.split('/')[-1]
+                print(f"Downloading {url} to {destination_folder}/{filename}")
+                try:
+                    image = requests.get(url, allow_redirects=True)
+                    if image.status_code == 200:
+                        document = document.replace(url, f"assets/{filename}")
+                        with open(f"{destination_folder}/{filename}", 'wb') as f:
+                            f.write(image.content)
+                    else:
+                        print(f"Error downloading {url}")
+                except Exception as e:
+                    print(f"Error downloading {url}: {e}")
     return document
 
 
@@ -76,14 +117,30 @@ def main(course_id: int, destination_folder: str) -> bool:
 
         blocks = [get_lecture_block(x['id']) for x in lecture['data']['attributes']['Blocks']['data']]
         for block in blocks:
-            block_path = f"{lecture_path}/{block['data']['id']}"
-            with open(f"{block_path}.md", 'w') as f:
-                document = extract_images(block['data']['attributes']['Document'], assets_path)
-                f.write(document)
+            # Skip blocks which are not published
+            if block['data']['attributes']['publishedAt']:
+                block_path = f"{lecture_path}/{block['data']['id']}"
+                with open(f"{block_path}.md", 'w') as markdown_file:
+                    block_document = block['data']['attributes']['Document']
+                    document = extract_images(block_document, assets_path)
+
+                    # Extract metadata for the top of the block
+                    title = block['data']['attributes']['Title']
+                    #keywords = block['data']['attributes']['keywords']
+                    author_list = [x['attributes'] for x in block['data']['attributes']['Authors']['data']]
+                    authors = []
+                    for author in author_list:
+                        authors.append(f"{author['FirstName']}, {author['LastName']}")
+                    # Write the metadata as a YAML block to the top of the markdown file
+                    yaml_dict = {'title': title, 'authors': authors,'keywords': keywords} #'keywords': keywords
+                    yaml_meta = dump(yaml_dict, default_flow_style=False)
+                    markdown_file.write('---\n')
+                    markdown_file.write(yaml_meta)
+                    markdown_file.write('---\n\n')
+                    markdown_file.write(document)
 
     return success
 
-
 if __name__ == "__main__":
-    success = main(2, "course_2")
+    success = main(2, "infra")
     print(success)

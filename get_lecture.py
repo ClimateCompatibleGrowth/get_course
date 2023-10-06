@@ -4,9 +4,9 @@ Writes a markdown file with the contents of the lecture to the current directory
 
 >>> python get_lecture.py
 
-
 """
 import requests
+#import keywords
 from typing import Dict, Union, Any
 
 
@@ -17,8 +17,9 @@ def get_lecture(id: str):
     ---------
         id (str): The id of the lecture block to retrieve
     """
-    url = f"https://teachingkit.climatecompatiblegrowth.com/api/lectures/{id}?locale=en&populate=*"
-    response = requests.get(url)
+    url = f"https://teachingkit.climatecompatiblegrowth.com/api/lectures/{id}"
+    payload = {'locale': 'en', 'populate': '*'}
+    response = requests.get(url, params=payload)
 
     return response.json()
 
@@ -39,10 +40,13 @@ if __name__ == "__main__":
 
     print(f"Attributes: {attributes.keys()}")
 
+    print(f"Version number: {attributes['versionNumber']}")
+    print(f"Version: {attributes['versions']}")
+
     blocks = attributes['Blocks']['data']
-    print(blocks)
+    # print(blocks)
     for block in blocks:
-        print(f"This lecture contains block {block['id']}: '{block['attributes']['Title']}'")
+        print(f"This lecture contains block {block['id']}: '{block['attributes']['Title']}'") #'{block['attributes']['keywords']}")
 
     authors = [x['attributes'] for x in attributes['LectureCreators']['data']]
 
@@ -56,10 +60,12 @@ if __name__ == "__main__":
 
     title = attributes['Title']
     print(title)
+    keywords = attributes['keywords']
+    print(keywords)
 
     lecture_id = lecture['data']['id']
     document = attributes['Abstract']
-    with open(f"lecture_{lecture_id}.md", 'wt') as markdown_file:
-        markdown_file.write(f"# {title}\n\n")
-        markdown_file.write(document)
+    # with open(f"lecture_{lecture_id}.md", 'wt') as markdown_file:
+    #     markdown_file.write(f"# {title}\n\n")
+    #     markdown_file.write(document)
 
