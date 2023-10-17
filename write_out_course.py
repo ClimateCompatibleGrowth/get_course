@@ -102,12 +102,45 @@ def extract_images(document: str, destination_folder: str):
     return document
 
 
+def extract_metadata(block):
+    """Extract metadata from a block.
+
+    Arguments
+    ---------
+    block: dict
+        The block data from which metadata is to be extracted.
+
+    Returns
+    -------
+    dict
+        A dictionary containing block metadata with keys 'title', 'authors', and 'keywords'.
+    """
+    # Extract metadata for the top of the block
+    title = block['data']['attributes']['Title']
+
+    keywords = []
+    for keyword in [x['attributes'] for x in block['data']['attributes']['Keywords']['data']]:
+        if 'en' in keyword['locale']:
+            keywords.append(keyword['Keyword'])
+
+    author_list = [x['attributes'] for x in block['data']['attributes']['Authors']['data']]
+    authors = []
+    for author in author_list:
+        authors.append(f"{author['FirstName']}, {author['LastName']}")
+    # Write the metadata as a YAML block to the top of the markdown file
+    return {'title': title, 'authors': authors, 'keywords': keywords}
+
+
+def create_directory_if_not_exists(directory):
+    if not exists(directory):
+        mkdir(directory)
+
+
 def main(course_id: int, destination_folder: str) -> bool:
 
     success = True
 
-    if not exists(destination_folder):
-        mkdir(destination_folder)
+    create_directory_if_not_exists(destination_folder)
 
     course = get_course(course_id)
     lecture_id: list = [x['id'] for x in course['data']['attributes']['Lectures']['data']]
@@ -116,12 +149,11 @@ def main(course_id: int, destination_folder: str) -> bool:
         lecture_path = f"{destination_folder}/lecture_{lecture['data']['id']}"
         assets_path = f"{lecture_path}/assets"
 
-        if not exists(lecture_path):
-            mkdir(lecture_path)
-        if not exists(assets_path):
-            mkdir(assets_path)
+        create_directory_if_not_exists(lecture_path)
+        create_directory_if_not_exists(assets_path)
 
         blocks = [get_lecture_block(x['id']) for x in lecture['data']['attributes']['Blocks']['data']]
+
         for block in blocks:
             # Skip blocks which are not published
             if block['data']['attributes']['publishedAt']:
@@ -130,20 +162,7 @@ def main(course_id: int, destination_folder: str) -> bool:
                     block_document = block['data']['attributes']['Document']
                     document = extract_images(block_document, assets_path)
 
-                    # Extract metadata for the top of the block
-                    title = block['data']['attributes']['Title']
-
-                    keywords = []
-                    for keyword in [x['attributes'] for x in block['data']['attributes']['Keywords']['data']]:
-                        if 'en' in keyword['locale']:
-                            keywords.append(keyword['Keyword'])
-
-                    author_list = [x['attributes'] for x in block['data']['attributes']['Authors']['data']]
-                    authors = []
-                    for author in author_list:
-                        authors.append(f"{author['FirstName']}, {author['LastName']}")
-                    # Write the metadata as a YAML block to the top of the markdown file
-                    yaml_dict = {'title': title, 'authors': authors,'keywords': keywords}
+                    yaml_dict = extract_metadata(block)
                     yaml_meta = dump(yaml_dict, default_flow_style=False)
                     markdown_file.write('---\n')
                     markdown_file.write(yaml_meta)
@@ -151,6 +170,7 @@ def main(course_id: int, destination_folder: str) -> bool:
                     markdown_file.write(document)
 
     return success
+
 
 if __name__ == "__main__":
     success = main(2, "infra")
