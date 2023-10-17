@@ -30,7 +30,7 @@ and the format to convert the material to.
 
 ## Remaining development
 
-- Only return blocks and lectures which are published, and the latest version (normally only the latest version is published, but not necessarily).
+- [ ] Only return blocks and lectures which are published, and the latest version (normally only the latest version is published, but not necessarily).
   Currently the relations store all blocks, including earlier versions of the same block, that are included in a lecture.
   The same for lectures and courses.
-- We need to re-do the embedding of images in the markdown documents. Images are stored in the media library, but are then uploaded to an amazon server, so these can be downloaded from the urls embedded in the document and then redirected to a local location.
+- [ ] We need to re-do the embedding of images in the markdown documents. Images are stored in the media library, but are then uploaded to an amazon server, so these can be downloaded from the urls embedded in the document and then redirected to a local location.

@@ -36,7 +36,7 @@ def regular_expression_markdown_image() -> str:
     -------
         str: A regular expression that matches markdown image references
     """
-    return r'!\[.*\]\(.*\)'
+    return r'!\[.*?\]\(.*?\)'
 
 
 def extract_urls(line: str) -> list:
@@ -63,6 +63,9 @@ def extract_urls(line: str) -> list:
     urls = re.findall(expression, line)
     return [x.split('(')[1].split(')')[0] for x in urls]
 
+def check_for_multiple_images(line: str) -> bool:
+    if len(line.split('!')) > 1:
+        return True
 
 def extract_images(document: str, destination_folder: str):
     """Extract all images from a markdown document, document to assets subfolder and replace with local references
@@ -73,7 +76,11 @@ def extract_images(document: str, destination_folder: str):
 
     Arguments
     ----------
-        document (str): The markdown document to extract images from
+        document: str
+            The markdown document to extract images from
+        destination_folder : str
+            The folder in which to place all the image files
+
     """
     for line in document.split('\n'):
         expression = regular_expression_markdown_image()
