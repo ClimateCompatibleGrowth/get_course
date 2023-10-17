@@ -27,7 +27,6 @@ from yaml import dump
 from get_block import get_lecture_block
 from get_course import get_course
 from get_lecture import get_lecture
-from get_keywrd import keywords
 
 
 def regular_expression_markdown_image() -> str:
@@ -126,13 +125,18 @@ def main(course_id: int, destination_folder: str) -> bool:
 
                     # Extract metadata for the top of the block
                     title = block['data']['attributes']['Title']
-                    #keywords = block['data']['attributes']['keywords']
+
+                    keywords = []
+                    for keyword in [x['attributes'] for x in block['data']['attributes']['Keywords']['data']]:
+                        if 'en' in keyword['locale']:
+                            keywords.append(keyword['Keyword'])
+
                     author_list = [x['attributes'] for x in block['data']['attributes']['Authors']['data']]
                     authors = []
                     for author in author_list:
                         authors.append(f"{author['FirstName']}, {author['LastName']}")
                     # Write the metadata as a YAML block to the top of the markdown file
-                    yaml_dict = {'title': title, 'authors': authors,'keywords': keywords} #'keywords': keywords
+                    yaml_dict = {'title': title, 'authors': authors,'keywords': keywords}
                     yaml_meta = dump(yaml_dict, default_flow_style=False)
                     markdown_file.write('---\n')
                     markdown_file.write(yaml_meta)
